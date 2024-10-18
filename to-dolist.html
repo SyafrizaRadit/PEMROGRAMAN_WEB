@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #e0f7fa; /* Light cyan background */
+            margin: 0;
+            padding: 20px;
+            overflow: hidden; /* Prevents scrolling during fireworks */
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            position: relative; /* Position for the canvas */
+        }
+        h1, h2 {
+            text-align: center;
+            color: #00796b; /* Teal color for headings */
+        }
+        .task-input {
+            display: flex;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s; /* Fade-in effect */
+        }
+        input[type="text"], input[type="time"], textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #00796b; /* Teal border */
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s; /* Animation on focus */
+        }
+        input[type="text"]:focus, input[type="time"]:focus, textarea:focus {
+            border-color: #004d40; /* Darker teal on focus */
+        }
+        button {
+            padding: 10px;
+            background-color: #00796b; /* Teal button */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s; /* Animation on hover */
+        }
+        button:hover {
+            background-color: #004d40; /* Darker teal on hover */
+        }
+        .editBtn {
+            padding: 10px;
+            background-color: #FFD700; /* Warna kuning */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .editBtn:hover {
+            background-color: #e6be00; /* Warna kuning yang lebih gelap saat di-hover */
+        }
+        
+        /* Warna tombol Delete menjadi merah */
+        .deleteBtn {
+            padding: 10px;
+            background-color: #FF6347; /* Warna merah */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .deleteBtn:hover {
+            background-color: #d9534f; /* Warna merah yang lebih gelap saat di-hover */
+        }
+        .task-list {
+            margin-top: 20px;
+            animation: fadeIn 0.5s; /* Fade-in effect */
+        }
+        .task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #b2dfdb; /* Light teal for task background */
+            border: 1px solid #00796b; /* Teal border */
+            border-radius: 5px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s; /* Animation on hover */
+        }
+        .task:hover {
+            background-color: #80cbc4; /* Darker teal on hover */
+        }
+        .calendar {
+            margin-top: 20px;
+            background: #f1f8e9; /* Light green background */
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .calendar h2 {
+            margin: 0;
+            color: #33691e; /* Darker green for calendar heading */
+        }
+        .icon {
+            margin-right: 5px;
+        }
+        .edit-time {
+            display: none; /* Hidden by default */
+            margin-left: 10px;
+        }
+        .thumbs-up {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            animation: scaleUp 0.5s forwards;
+            pointer-events: none; /* Prevent interaction */
+        }
+        @keyframes scaleUp {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        /* Fireworks canvas */
+        #fireworksCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Disable interactions */
+            z-index: 999; /* Above all other elements */
+            display: none; /* Hidden by default */
+        }
+        /* Pop-up circle styles */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(0deg);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            display: none; /* Hidden by default */
+            z-index: 1000; /* Above all other elements */
+            animation: fadeIn 0.5s forwards;
+        }
+        .popup p {
+            font-size: 20px;
+            color: #00796b; /* Teal color */
+            margin: 10px 0;
+        }
+        .popup .smile {
+            font-size: 50px; /* Larger emoji */
+            animation: rotate 1s forwards; /* Rotate animation */
+        }
+        @keyframes rotate {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+        /* Reminder pop-up styles */
+        .reminder-popup {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff3cd; /* Light yellow background */
+            border: 1px solid #ffeeba; /* Yellow border */
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            z-index: 1001; /* Above the other pop-ups */
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.5s forwards; /* Fade-in animation */
+        }
+        .reminder-popup h3 {
+            color: #856404; /* Dark yellow text */
+            margin: 0;
+            font-size: 20px;
+            text-align: center;
+        }
+        .reminder-popup .reminder-icon {
+            font-size: 40px; /* Size of the icon */
+            display: block;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><i class="fas fa-check-circle icon"></i>To-Do List App</h1>
+        <h2 style="text-align: center; color: black; opacity: 50; font-size: 14px;">by Adets_379</h2>
+
+        <canvas id="fireworksCanvas"></canvas> <!-- Canvas for fireworks -->
+
+        <div class="task-input">
+            <input type="text" id="taskInput" placeholder="Add a new task..." required>
+            <input type="time" id="taskTime" required>
+            <textarea id="taskDescription" placeholder="Add a description..." rows="1"></textarea>
+            <button id="addTaskBtn"><i class="fas fa-plus"></i>Add Task</button>
+        </div>
+
+        <div class="task-list" id="taskList">
+            <h3>Your Tasks</h3>
+            <!-- Tasks will be added here dynamically -->
+        </div>
+
+        <button id="completeSelectedBtn" style="margin-top: 20px; display:none;">Complete Selected Tasks</button> <!-- Button for completing selected tasks -->
+
+        <div class="calendar">
+            <h2><i class="fas fa-calendar-alt"></i>Current Date: <span id="currentDate"></span></h2>
+        </div>
+    </div>
+
+    <div class="popup" id="popup">
+        <p>Your task is complete!</p>
+        <span class="smile">😊</span>
+    </div>
+
+    <div class="reminder-popup" id="reminderPopup">
+        <i class="fas fa-exclamation-circle reminder-icon"></i>
+        <h3>Reminder: Due task now!</h3>
+    </div>
+
+    <script>
+        // Function to set the current date in the header
+        function setCurrentDate() {
+            const date = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('currentDate').innerText = date.toLocaleDateString(undefined, options);
+        }
+
+        // Function to create fireworks effect
+        function createFireworks() {
+            const canvas = document.getElementById('fireworksCanvas');
+            canvas.style.display = 'block'; // Show canvas
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const particles = [];
+            const colors = ['#FF0D00', '#FF6A00', '#FF00A5', '#00FF00', '#00A3FF', '#004DFF', '#D700FF'];
+
+            // Create particles for fireworks
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    radius: Math.random() * 5 + 2, // Random radius
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    velocityX: (Math.random() - 0.5) * 10,
+                    velocityY: (Math.random() - 0.5) * 10,
+                    lifetime: Math.random() * 100 + 50 // Random lifetime for particles
+                });
+            }
+
+            // Animate fireworks
+            function animateFireworks() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((particle, index) => {
+                    particle.x += particle.velocityX;
+                    particle.y += particle.velocityY;
+                    particle.lifetime--;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = particle.color;
+                    ctx.fill();
+                    ctx.closePath();
+
+                    // Remove particle if lifetime expired
+                    if (particle.lifetime <= 0) {
+                        particles.splice(index, 1);
+                    }
+                });
+
+                if (particles.length > 0) {
+                    requestAnimationFrame(animateFireworks);
+                } else {
+                    canvas.style.display = 'none'; // Hide canvas when done
+                }
+            }
+
+            animateFireworks();
+
+            // Show pop-up message
+            const popup = document.getElementById('popup');
+            popup.classList.add('spinning'); // Add spinning class
+            popup.style.display = 'block';
+
+            // Fade out effect
+            setTimeout(() => {
+                popup.style.animation = 'fadeOut 1s forwards';
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                    popup.classList.remove('spinning'); // Remove spinning class
+                }, 1000); // Remove from display after fade out
+            }, 2000); // Show for 2 seconds
+        }
+
+        // Function to show reminder popup
+        function showReminder() {
+            const reminderPopup = document.getElementById('reminderPopup');
+            reminderPopup.style.display = 'block'; // Show reminder popup
+            setTimeout(() => {
+                reminderPopup.style.animation = 'fadeOut 1s forwards'; // Fade out animation
+                setTimeout(() => {
+                    reminderPopup.style.display = 'none'; // Hide after fade out
+                }, 1000); // Wait for fade out to complete
+            }, 3000); // Display for 3 seconds
+        }
+
+        document.getElementById('addTaskBtn').addEventListener('click', function() {
+            const taskInput = document.getElementById('taskInput');
+            const taskTime = document.getElementById('taskTime');
+            const taskDescription = document.getElementById('taskDescription');
+            const taskList = document.getElementById('taskList');
+
+            const taskValue = taskInput.value;
+            const timeValue = taskTime.value;
+
+            if (taskValue && timeValue) {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task';
+
+                taskDiv.innerHTML = `
+                    <input type="checkbox" class="taskCheckbox"> <!-- Checkbox for selecting tasks -->
+                    <span>${taskValue}</span>
+                    <span class="task-time">${timeValue}</span>
+                    <div>
+                        <button class="completeBtn"><i class="fas fa-check"></i>Complete</button>
+                        <button class="editBtn"><i class="fas fa-edit"></i>Edit</button>
+                        <button class="deleteBtn"><i class="fas fa-trash"></i>Delete</button>
+                        <input type="time" class="edit-time" value="${timeValue}" style="display:none;">
+                    </div>
+                `;
+
+                taskList.appendChild(taskDiv);
+                taskInput.value = ''; // Clear the input field
+                taskTime.value = ''; // Clear the time field
+                taskDescription.value = ''; // Clear the description field
+
+                // Show the complete selected button when there are tasks
+                document.getElementById('completeSelectedBtn').style.display = 'block';
+
+                // Schedule alarm for the task time
+                const alarmTime = new Date();
+                const [hours, minutes] = timeValue.split(':');
+                alarmTime.setHours(hours);
+                alarmTime.setMinutes(minutes);
+                alarmTime.setSeconds(0);
+
+                const timeToAlarm = alarmTime - new Date();
+                if (timeToAlarm > 0) {
+                    setTimeout(() => {
+                        showReminder(); // Show reminder pop-up
+                    }, timeToAlarm);
+                }
+
+                // Alert the user that the task has been added
+                alert(`Task added: "${taskValue}" at ${timeValue}`);
+
+                // Add event listener to the complete button
+                taskDiv.querySelector('.completeBtn').addEventListener('click', function() {
+                    createFireworks(); // Fullscreen fireworks effect
+                    taskDiv.remove(); // Remove the task from the list
+                });
+
+                // Add event listener to the delete button
+                taskDiv.querySelector('.deleteBtn').addEventListener('click', function() {
+                    taskDiv.remove(); // Remove the task from the list
+                });
+
+                // Add event listener to the edit button
+                taskDiv.querySelector('.editBtn').addEventListener('click', function() {
+                    const editTimeInput = taskDiv.querySelector('.edit-time');
+                    const taskTimeDisplay = taskDiv.querySelector('.task-time');
+                    
+                    if (editTimeInput.style.display === 'none') {
+                        editTimeInput.style.display = 'inline';
+                        editTimeInput.focus(); // Focus on the time input
+                    } else {
+                        const newTime = editTimeInput.value;
+                        taskTimeDisplay.innerText = newTime; // Update the displayed time
+                        editTimeInput.style.display = 'none'; // Hide the input again
+
+                        // Reschedule alarm for the new time
+                        const newAlarmTime = new Date();
+                        const [newHours, newMinutes] = newTime.split(':');
+                        newAlarmTime.setHours(newHours);
+                        newAlarmTime.setMinutes(newMinutes);
+                        newAlarmTime.setSeconds(0);
+
+                        const newTimeToAlarm = newAlarmTime - new Date();
+                        if (newTimeToAlarm > 0) {
+                            setTimeout(() => {
+                                showReminder(); // Show reminder pop-up
+                            }, newTimeToAlarm);
+                        }
+                    }
+                });
+            } else {
+                alert("Please enter both task and time."); // Alert if inputs are empty
+            }
+        });
+
+        // Event listener for the complete selected button
+        document.getElementById('completeSelectedBtn').addEventListener('click', function() {
+            const taskCheckboxes = document.querySelectorAll('.taskCheckbox');
+            taskCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const taskDiv = checkbox.parentElement; // Get the parent task div
+                    createFireworks(); // Fullscreen fireworks effect
+                    taskDiv.remove(); // Remove the task from the list
+                }
+            });
+            // Hide the button if no tasks are left
+            if (taskList.children.length === 0) {
+                this.style.display = 'none';
+            }
+        });
+
+        // Set the current date when the page loads
+        setCurrentDate();
+    </script>
+</body>
+</html>

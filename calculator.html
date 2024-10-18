@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .calculator {
+            background-color: white;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            transition: background-color 0.5s, color 0.5s;
+        }
+
+        .calculator.dark {
+            background-color: #333;
+            color: white;
+        }
+
+        .calculator .toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 20px;
+            transition: background-color 0.5s;
+        }
+
+        .calculator.dark .toggle {
+            background-color: #555;
+            color: white;
+        }
+
+        .calculator .display-box {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-bottom: 20px;
+            padding-top: 60px;
+        }
+
+        .calculator .input-display {
+            background-color: transparent;
+            border: none;
+            width: 100%;
+            font-size: 2.5rem;
+            text-align: right;
+            color: inherit;
+            transition: transform 0.5s, font-size 0.5s;
+        }
+
+        .calculator .output-display {
+            display: none;
+            font-size: 1.8rem;
+            color: #007aff;
+            text-align: right;
+        }
+
+        .calculator.animate .input-display {
+            transform: translateY(-20px);
+            font-size: 1.5rem;
+        }
+
+        .calculator.animate .output-display {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .calculator .keys {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px; /* Jarak antar tombol */
+        }
+
+        .calculator button {
+            padding: 20px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 10px;
+            background-color: #f0f0f0;
+            box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2), inset 0px -4px 6px rgba(255, 255, 255, 0.4);
+            transition: background-color 0.3s, box-shadow 0.2s;
+            color: #007aff; /* Warna biru untuk teks tombol */
+        }
+
+        .calculator button:active {
+            background-color: #d0d0d0;
+        }
+
+        .calculator.dark button {
+            background-color: #555;
+            color: #007aff; /* Warna biru untuk teks tombol di dark mode */
+        }
+
+        .calculator.dark button:active {
+            background-color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator" id="calculator">
+        <div class="toggle" onclick="toggleMode()" id="toggle-mode">
+            <span>🌙</span> Dark Mode
+        </div>
+        
+        <div class="display-box">
+            <input type="text" class="input-display" id="input-display" disabled>
+            <div class="output-display" id="output-display"></div>
+        </div>
+        <div class="keys">
+            <button onclick="clearDisplay()">C</button>
+            <button onclick="appendCharacter('+/-')">+/-</button>
+            <button onclick="appendCharacter('%')">%</button>
+            <button onclick="deleteCharacter()">⌫</button>
+            <button onclick="appendCharacter('7')">7</button>
+            <button onclick="appendCharacter('8')">8</button>
+            <button onclick="appendCharacter('9')">9</button>
+            <button onclick="appendCharacter('/')">/</button>
+            <button onclick="appendCharacter('4')">4</button>
+            <button onclick="appendCharacter('5')">5</button>
+            <button onclick="appendCharacter('6')">6</button>
+            <button onclick="appendCharacter('*')">*</button>
+            <button onclick="appendCharacter('1')">1</button>
+            <button onclick="appendCharacter('2')">2</button>
+            <button onclick="appendCharacter('3')">3</button>
+            <button onclick="appendCharacter('-')">-</button>
+            <button onclick="appendCharacter('0')">0</button>
+            <button onclick="appendCharacter('.')">.</button>
+            <button onclick="calculate()">=</button>
+            <button onclick="appendCharacter('+')">+</button>
+            <button onclick="appendCharacter('^')">^</button> <!-- Tombol pangkat -->
+        </div>
+    </div>
+
+    <script>
+        let isDarkMode = false;
+        const inputDisplay = document.getElementById('input-display');
+        const outputDisplay = document.getElementById('output-display');
+        let currentValue = '';
+
+        function appendCharacter(character) {
+            currentValue += character;
+            inputDisplay.value = currentValue;
+        }
+
+        function deleteCharacter() {
+            currentValue = currentValue.slice(0, -1);
+            inputDisplay.value = currentValue;
+        }
+
+        function clearDisplay() {
+            currentValue = '';
+            inputDisplay.value = currentValue;
+            outputDisplay.innerText = '';
+            const calculator = document.getElementById('calculator');
+            calculator.classList.remove('animate');
+        }
+
+        function calculate() {
+            try {
+                const result = eval(currentValue.replace(/\^/g, '**')); // Ganti ^ dengan **
+                outputDisplay.innerText = result;
+                const calculator = document.getElementById('calculator');
+                calculator.classList.add('animate');
+            } catch {
+                inputDisplay.value = 'Error';
+            }
+        }
+
+        function toggleMode() {
+            const calculator = document.getElementById('calculator');
+            const toggleButton = document.getElementById('toggle-mode');
+            isDarkMode = !isDarkMode;
+            calculator.classList.toggle('dark', isDarkMode);
+
+            // Mengubah teks dan ikon switch mode
+            if (isDarkMode) {
+                toggleButton.innerHTML = '<span>🌞</span> Light Mode';
+            } else {
+                toggleButton.innerHTML = '<span>🌙</span> Dark Mode';
+            }
+        }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+
+            if (key >= '0' && key <= '9') {
+                appendCharacter(key);
+            } else if (key === '+' || key === '-' || key === '^' || key === '/') {
+                appendCharacter(key);
+            } else if (key === 'Enter') {
+                calculate();
+            } else if (key === 'Backspace') {
+                deleteCharacter();
+            } else if (key === 'Delete') {
+                clearDisplay();
+            } else if (key === '.') {
+                appendCharacter('.');
+            }
+        });
+    </script>
+
+</body>
+</html>
